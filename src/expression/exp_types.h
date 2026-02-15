@@ -1,0 +1,17 @@
+#pragma once
+#include "common.h"
+
+namespace ntt {
+
+enum ExpressionType
+{
+	EXPRESSION_TYPE_UNKNOWN,
+	EXPRESSION_TYPE_LITERAL,
+	EXPRESSION_TYPE_ADD,
+	EXPRESSION_TYPE_SUBTRACT,
+	EXPRESSION_TYPE_MULTIPLY,
+	EXPRESSION_TYPE_DIVIDE,
+	EXPRESSION_TYPE_COUNT,
+};
+
+} // namespace ntt

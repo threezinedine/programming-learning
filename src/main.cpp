@@ -1,3 +1,5 @@
+#include "ast.h"
+#include "expression/expression.h"
 #include <cstdio>
 #include <fstream>
 #include <tokenizer.h>
@@ -20,9 +22,17 @@ int main(void)
 		return 1;
 	}
 
-	for (const auto& token : tokens)
+	ntt::Expression* exp = ntt::parseExp(tokens);
+
+	if (exp)
 	{
-		ntt::printToken(token);
+		exp->print();
+		printf("\n");
+		delete exp;
+	}
+	else
+	{
+		fprintf(stderr, "Failed to parse expression.\n");
 	}
 
 	return 0;
