@@ -34,7 +34,7 @@ Literal: Integer
 
  */
 
-#define SETUP_PARSE_FUNCTION()                                                                                         \
+#define VALIDATE_PARSE_FUNCTION()                                                                                      \
 	do                                                                                                                 \
 	{                                                                                                                  \
 		if (tokenCursor >= static_cast<i32>(tokens.size()))                                                            \
@@ -67,7 +67,7 @@ Literal: Integer
 
 static Expression* parseAddExp(const std::vector<Token>& tokens, i32& tokenCursor);
 static Expression* parseLeftAddExp(const std::vector<Token>& tokens, i32& tokenCursor);
-static Expression* parseRightAddExp(const std::vector<Token>& tokens, i32& tokenCursor);
+static Expression* parseRightAddExp(const std::vector<Token>& tokens, i32& tokenCursor, Expression* leftExp);
 static Expression* parseLeftMulExp(const std::vector<Token>& tokens, i32& tokenCursor);
 static Expression* parseRightMulExp(const std::vector<Token>& tokens, i32& tokenCursor);
 static Expression* parsePrimaryExp(const std::vector<Token>& tokens, i32& tokenCursor);
@@ -78,7 +78,7 @@ Expression* parseExp(const std::vector<Token>& tokens)
 	i32 tokenCount	= static_cast<i32>(tokens.size());
 	i32 tokenCursor = 0;
 
-	Expression* exp = parseLiteral(tokens, tokenCursor);
+	Expression* exp = parseAddExp(tokens, tokenCursor);
 
 	if (tokenCursor != tokenCount)
 	{
@@ -92,17 +92,63 @@ Expression* parseExp(const std::vector<Token>& tokens)
 
 static Expression* parseAddExp(const std::vector<Token>& tokens, i32& tokenCursor)
 {
-	return nullptr;
+	VALIDATE_PARSE_FUNCTION();
+
+	i32 pivot = tokenCursor;
+
+	Expression* leftExp = parseLeftAddExp(tokens, tokenCursor);
+
+	if (!leftExp)
+	{
+		tokenCursor = pivot;
+		return nullptr;
+	}
+
+	pivot = tokenCursor;
+
+	Expression* rightExp = parseRightAddExp(tokens, tokenCursor, leftExp);
+
+	if (!rightExp)
+	{
+		tokenCursor = pivot;
+		return leftExp;
+	}
+
+	return rightExp;
 }
 
 static Expression* parseLeftAddExp(const std::vector<Token>& tokens, i32& tokenCursor)
 {
-	return nullptr;
+	return parsePrimaryExp(tokens, tokenCursor); // TODO: This should be LeftMulExp
 }
 
-static Expression* parseRightAddExp(const std::vector<Token>& tokens, i32& tokenCursor)
+static Expression* parseRightAddExp(const std::vector<Token>& tokens, i32& tokenCursor, Expression* leftExp)
 {
-	return nullptr;
+	VALIDATE_PARSE_FUNCTION();
+
+	const Token& token = tokens[tokenCursor];
+
+	if (token.type == TOKEN_TYPE_OPERATOR)
+	{
+		if (token.value.stringValue[0] == '+')
+		{
+			Expression* rightExp = parseLeftAddExp(tokens, ++tokenCursor);
+			if (rightExp)
+			{
+				return new OperatorExpression(EXPRESSION_TYPE_ADD, leftExp, rightExp);
+			}
+		}
+		else if (token.value.stringValue[0] == '-')
+		{
+			Expression* rightExp = parseLeftAddExp(tokens, ++tokenCursor);
+			if (rightExp)
+			{
+				return new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, leftExp, rightExp);
+			}
+		}
+	}
+
+	return leftExp;
 }
 
 static Expression* parseLeftMulExp(const std::vector<Token>& tokens, i32& tokenCursor)
@@ -117,7 +163,7 @@ static Expression* parseRightMulExp(const std::vector<Token>& tokens, i32& token
 
 static Expression* parsePrimaryExp(const std::vector<Token>& tokens, i32& tokenCursor)
 {
-	SETUP_PARSE_FUNCTION();
+	VALIDATE_PARSE_FUNCTION();
 
 	i32 pivotCursor = tokenCursor;
 
@@ -138,7 +184,7 @@ static Expression* parsePrimaryExp(const std::vector<Token>& tokens, i32& tokenC
 
 static Expression* parseLiteral(const std::vector<Token>& tokens, i32& tokenCursor)
 {
-	SETUP_PARSE_FUNCTION();
+	VALIDATE_PARSE_FUNCTION();
 
 	const Token& token = tokens[tokenCursor];
 

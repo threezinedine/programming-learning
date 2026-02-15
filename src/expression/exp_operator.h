@@ -10,6 +10,8 @@ public:
 	OperatorExpression(ExpressionType type, Expression* left, Expression* right);
 	~OperatorExpression();
 
+	void print() const override;
+
 private:
 	Expression* m_left;
 	Expression* m_right;
