@@ -16,36 +16,46 @@ OperatorExpression::~OperatorExpression()
 	delete m_right;
 }
 
-void OperatorExpression::print() const
+std::string OperatorExpression::toString() const
 {
-	if (m_left)
-	{
-		m_left->print();
-	}
+	char buffer[256] = {0};
 
 	switch (type)
 	{
 	case EXPRESSION_TYPE_ADD:
-		printf(" + ");
+		snprintf(buffer,
+				 sizeof(buffer),
+				 "<AddExp left=%s right=%s>",
+				 m_left->toString().c_str(),
+				 m_right->toString().c_str());
 		break;
 	case EXPRESSION_TYPE_SUBTRACT:
-		printf(" - ");
+		snprintf(buffer,
+				 sizeof(buffer),
+				 "<SubtractExp left=%s right=%s>",
+				 m_left->toString().c_str(),
+				 m_right->toString().c_str());
 		break;
 	case EXPRESSION_TYPE_MULTIPLY:
-		printf(" * ");
+		snprintf(buffer,
+				 sizeof(buffer),
+				 "<MultiplyExp left=%s right=%s>",
+				 m_left->toString().c_str(),
+				 m_right->toString().c_str());
 		break;
 	case EXPRESSION_TYPE_DIVIDE:
-		printf(" / ");
+		snprintf(buffer,
+				 sizeof(buffer),
+				 "<DivideExp left=%s right=%s>",
+				 m_left->toString().c_str(),
+				 m_right->toString().c_str());
 		break;
 	default:
 		printf(" ? ");
 		break;
 	}
 
-	if (m_right)
-	{
-		m_right->print();
-	}
+	return std::string(buffer);
 }
 
 } // namespace ntt

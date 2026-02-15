@@ -1,5 +1,6 @@
 #pragma once
 #include "exp_types.h"
+#include <string>
 
 namespace ntt {
 
@@ -9,7 +10,12 @@ public:
 	Expression(ExpressionType type);
 	virtual ~Expression();
 
-	virtual void print() const = 0;
+	virtual std::string toString() const = 0;
+
+	void print() const
+	{
+		printf("%s", toString().c_str());
+	}
 
 protected:
 	ExpressionType type;

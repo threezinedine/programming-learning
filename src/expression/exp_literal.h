@@ -10,7 +10,7 @@ public:
 	LiteralExpression(Token token);
 	~LiteralExpression() override;
 
-	void print() const override;
+	std::string toString() const override;
 
 private:
 	Token m_token;

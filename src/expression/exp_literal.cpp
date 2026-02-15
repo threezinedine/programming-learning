@@ -12,19 +12,23 @@ LiteralExpression::~LiteralExpression()
 {
 }
 
-void LiteralExpression::print() const
+std::string LiteralExpression::toString() const
 {
+	char buffer[256] = {0};
+
 	if (m_token.type == TOKEN_TYPE_INTEGER)
 	{
-		printf("%d", m_token.value.integerValue);
+		snprintf(buffer, sizeof(buffer), "%d", m_token.value.integerValue);
+		return std::string(buffer);
 	}
 	else if (m_token.type == TOKEN_TYPE_FLOAT)
 	{
-		printf("%f", m_token.value.floatValue);
+		snprintf(buffer, sizeof(buffer), "%f", m_token.value.floatValue);
+		return std::string(buffer);
 	}
 	else
 	{
-		printf("0");
+		return "0";
 	}
 }
 
