@@ -29,26 +29,21 @@ AST::AST(const std::string& sourceCode, TokenParser tokenParser)
 
 AST::~AST()
 {
-	if (m_pRootExpression != nullptr)
-	{
-		delete m_pRootExpression;
-		m_pRootExpression = nullptr;
-	}
 }
 
-Expression* AST::parseExp()
+Ref<Expression> AST::parseExp()
 {
 	return parseAddExp();
 }
 
-Expression* AST::parseAddExp()
+Ref<Expression> AST::parseAddExp()
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	OperatorExpression* pAddExp = new OperatorExpression(EXPRESSION_TYPE_ADD);
+	Ref<OperatorExpression> pAddExp = CreateRef<OperatorExpression>(EXPRESSION_TYPE_ADD);
 
-	Expression* pLeftAddExp = parseLeftAddExp();
+	Ref<Expression> pLeftAddExp = parseLeftAddExp();
 
 	if (pLeftAddExp == nullptr)
 	{
@@ -60,7 +55,7 @@ Expression* AST::parseAddExp()
 
 	SAVE_CHECKPOINT();
 
-	if (parseRightAddExp(&pAddExp))
+	if (parseRightAddExp(pAddExp))
 	{
 		return pAddExp;
 	}
@@ -74,12 +69,12 @@ Expression* AST::parseAddExp()
 	return pLeftAddExp;
 }
 
-Expression* AST::parseLeftAddExp()
+Ref<Expression> AST::parseLeftAddExp()
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	Expression* pLeftMulExp = parseLeftMulExp();
+	Ref<Expression> pLeftMulExp = parseLeftMulExp();
 
 	if (pLeftMulExp == nullptr)
 	{
@@ -88,10 +83,10 @@ Expression* AST::parseLeftAddExp()
 	}
 
 	SAVE_CHECKPOINT();
-	OperatorExpression* pMulExp = new OperatorExpression(EXPRESSION_TYPE_MULTIPLY);
+	Ref<OperatorExpression> pMulExp = CreateRef<OperatorExpression>(EXPRESSION_TYPE_MULTIPLY);
 	pMulExp->setLeft(pLeftMulExp);
 
-	if (parseRightMulExp(&pMulExp))
+	if (parseRightMulExp(pMulExp))
 	{
 		return pMulExp;
 	}
@@ -102,13 +97,13 @@ Expression* AST::parseLeftAddExp()
 	}
 }
 
-bool AST::parseRightAddExp(OperatorExpression** ppAddExp)
+bool AST::parseRightAddExp(Ref<OperatorExpression>& pAddExp)
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	Expression* opAdd = parseToken(TOKEN_TYPE_OPERATOR_ADD);
-	Expression* opSub = parseToken(TOKEN_TYPE_OPERATOR_SUB);
+	Token* opAdd = parseToken(TOKEN_TYPE_OPERATOR_ADD);
+	Token* opSub = parseToken(TOKEN_TYPE_OPERATOR_SUB);
 
 	if (opAdd == nullptr && opSub == nullptr)
 	{
@@ -118,14 +113,14 @@ bool AST::parseRightAddExp(OperatorExpression** ppAddExp)
 
 	if (opAdd != nullptr)
 	{
-		(*ppAddExp)->toAddOperator();
+		pAddExp->toAddOperator();
 	}
 	else if (opSub != nullptr)
 	{
-		(*ppAddExp)->toSubtractOperator();
+		pAddExp->toSubtractOperator();
 	}
 
-	Expression* pLeftAddExp = parseLeftAddExp();
+	Ref<Expression> pLeftAddExp = parseLeftAddExp();
 
 	if (pLeftAddExp == nullptr)
 	{
@@ -133,16 +128,16 @@ bool AST::parseRightAddExp(OperatorExpression** ppAddExp)
 		return false;
 	}
 
-	(*ppAddExp)->setRight(pLeftAddExp);
+	pAddExp->setRight(pLeftAddExp);
 
 	SAVE_CHECKPOINT();
 
-	OperatorExpression* pNewAddExp = new OperatorExpression(EXPRESSION_TYPE_ADD);
-	pNewAddExp->setLeft(*ppAddExp);
+	Ref<OperatorExpression> pNewAddExp = CreateRef<OperatorExpression>(EXPRESSION_TYPE_ADD);
+	pNewAddExp->setLeft(pAddExp);
 
-	if (parseRightAddExp(&pNewAddExp))
+	if (parseRightAddExp(pNewAddExp))
 	{
-		*ppAddExp = pNewAddExp;
+		pAddExp = pNewAddExp;
 	}
 	else
 	{
@@ -152,18 +147,18 @@ bool AST::parseRightAddExp(OperatorExpression** ppAddExp)
 	return true;
 }
 
-Expression* AST::parseLeftMulExp()
+Ref<Expression> AST::parseLeftMulExp()
 {
 	return parsePrimaryExp();
 }
 
-bool AST::parseRightMulExp(OperatorExpression** ppMulExp)
+bool AST::parseRightMulExp(Ref<OperatorExpression>& pMulExp)
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	Expression* opMul = parseToken(TOKEN_TYPE_OPERATOR_MUL);
-	Expression* opDiv = parseToken(TOKEN_TYPE_OPERATOR_DIV);
+	Token* opMul = parseToken(TOKEN_TYPE_OPERATOR_MUL);
+	Token* opDiv = parseToken(TOKEN_TYPE_OPERATOR_DIV);
 
 	if (opMul == nullptr && opDiv == nullptr)
 	{
@@ -173,14 +168,14 @@ bool AST::parseRightMulExp(OperatorExpression** ppMulExp)
 
 	if (opMul != nullptr)
 	{
-		(*ppMulExp)->toMultiplyOperator();
+		pMulExp->toMultiplyOperator();
 	}
 	else if (opDiv != nullptr)
 	{
-		(*ppMulExp)->toDivideOperator();
+		pMulExp->toDivideOperator();
 	}
 
-	Expression* pLeftMulExp = parseLeftMulExp();
+	Ref<Expression> pLeftMulExp = parseLeftMulExp();
 
 	if (pLeftMulExp == nullptr)
 	{
@@ -188,16 +183,16 @@ bool AST::parseRightMulExp(OperatorExpression** ppMulExp)
 		return false;
 	}
 
-	(*ppMulExp)->setRight(pLeftMulExp);
+	pMulExp->setRight(pLeftMulExp);
 
 	SAVE_CHECKPOINT();
 
-	OperatorExpression* pNewMulExp = new OperatorExpression(EXPRESSION_TYPE_MULTIPLY);
-	pNewMulExp->setLeft(*ppMulExp);
+	Ref<OperatorExpression> pNewMulExp = CreateRef<OperatorExpression>(EXPRESSION_TYPE_MULTIPLY);
+	pNewMulExp->setLeft(pMulExp);
 
-	if (parseRightMulExp(&pNewMulExp))
+	if (parseRightMulExp(pNewMulExp))
 	{
-		*ppMulExp = pNewMulExp;
+		pMulExp = pNewMulExp;
 	}
 	else
 	{
@@ -207,12 +202,12 @@ bool AST::parseRightMulExp(OperatorExpression** ppMulExp)
 	return true;
 }
 
-Expression* AST::parsePrimaryExp()
+Ref<Expression> AST::parsePrimaryExp()
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	Expression* pLiteral = parseLiteral();
+	Ref<Expression> pLiteral = parseLiteral();
 	if (pLiteral != nullptr)
 	{
 		return pLiteral;
@@ -220,7 +215,7 @@ Expression* AST::parsePrimaryExp()
 
 	RESTORE_CHECKPOINT();
 
-	Expression* pLiteral_1 = parseLiteral_1();
+	Ref<Expression> pLiteral_1 = parseLiteral_1();
 
 	if (pLiteral_1 != nullptr)
 	{
@@ -231,7 +226,7 @@ Expression* AST::parsePrimaryExp()
 	return nullptr;
 }
 
-Expression* AST::parseLiteral()
+Ref<Expression> AST::parseLiteral()
 {
 	if (m_tokenCursor >= static_cast<i32>(m_tokens.size()))
 	{
@@ -244,18 +239,18 @@ Expression* AST::parseLiteral()
 	case TOKEN_TYPE_INTEGER:
 	case TOKEN_TYPE_FLOAT:
 		m_tokenCursor++;
-		return new LiteralExpression(token);
+		return CreateRef<LiteralExpression>(token);
 	default:
 		return nullptr;
 	}
 }
 
-Expression* AST::parseLiteral_1()
+Ref<Expression> AST::parseLiteral_1()
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	Expression* pOpen = parseToken(TOKEN_TYPE_OPEN_PARENTHESIS);
+	Token* pOpen = parseToken(TOKEN_TYPE_OPEN_PARENTHESIS);
 
 	if (pOpen == nullptr)
 	{
@@ -263,7 +258,7 @@ Expression* AST::parseLiteral_1()
 		return nullptr;
 	}
 
-	Expression* pExp = parseExp();
+	Ref<Expression> pExp = parseExp();
 
 	if (pExp == nullptr)
 	{
@@ -271,7 +266,7 @@ Expression* AST::parseLiteral_1()
 		return nullptr;
 	}
 
-	Expression* pClose = parseToken(TOKEN_TYPE_CLOSE_PARENTHESIS);
+	Token* pClose = parseToken(TOKEN_TYPE_CLOSE_PARENTHESIS);
 	if (pClose == nullptr)
 	{
 		RESTORE_CHECKPOINT();
@@ -281,7 +276,7 @@ Expression* AST::parseLiteral_1()
 	return pExp;
 }
 
-Expression* AST::parseToken(TokenType expectedType)
+Token* AST::parseToken(TokenType expectedType)
 {
 	if (m_tokenCursor >= static_cast<i32>(m_tokens.size()))
 	{
@@ -292,15 +287,15 @@ Expression* AST::parseToken(TokenType expectedType)
 	if (token.type == expectedType)
 	{
 		m_tokenCursor++;
-		return new LiteralExpression(token);
+		return &token;
 	}
 
 	return nullptr;
 }
 
-Expression* AST::parseEpsilon()
+Ref<Expression> AST::parseEpsilon()
 {
-	return new EpsilonExpression();
+	return CreateRef<EpsilonExpression>();
 }
 
 } // namespace ntt

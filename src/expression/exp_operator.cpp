@@ -3,7 +3,7 @@
 
 namespace ntt {
 
-OperatorExpression::OperatorExpression(ExpressionType type, Expression* left, Expression* right)
+OperatorExpression::OperatorExpression(ExpressionType type, Ref<Expression> left, Ref<Expression> right)
 	: Expression(type)
 	, m_left(left)
 	, m_right(right)
@@ -12,8 +12,6 @@ OperatorExpression::OperatorExpression(ExpressionType type, Expression* left, Ex
 
 OperatorExpression::~OperatorExpression()
 {
-	delete m_left;
-	delete m_right;
 }
 
 nlohmann::json OperatorExpression::toJson() const

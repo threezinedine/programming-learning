@@ -50,7 +50,7 @@ public:
 	AST(const std::string& sourceCode, TokenParser tokenParser = nullptr);
 	~AST();
 
-	inline const Expression* getRootExpression() const
+	inline const Ref<Expression> getRootExpression() const
 	{
 		return m_pRootExpression;
 	}
@@ -61,25 +61,25 @@ public:
 	}
 
 private:
-	Expression* parsePrimaryExp();
-	Expression* parseLiteral();
-	Expression* parseLiteral_1();
-	Expression* parseEpsilon();
-	Expression* parseToken(TokenType expectedType);
+	Ref<Expression> parsePrimaryExp();
+	Ref<Expression> parseLiteral();
+	Ref<Expression> parseLiteral_1();
+	Ref<Expression> parseEpsilon();
+	Token*			parseToken(TokenType expectedType);
 
 private:
-	Expression* parseExp();
-	Expression* parseAddExp();
-	Expression* parseLeftAddExp();
-	bool		parseRightAddExp(OperatorExpression** ppAddExp);
+	Ref<Expression> parseExp();
+	Ref<Expression> parseAddExp();
+	Ref<Expression> parseLeftAddExp();
+	bool			parseRightAddExp(Ref<OperatorExpression>& pAddExp);
 
-	Expression* parseLeftMulExp();
-	bool		parseRightMulExp(OperatorExpression** ppMulExp);
+	Ref<Expression> parseLeftMulExp();
+	bool			parseRightMulExp(Ref<OperatorExpression>& pMulExp);
 
 private:
 	std::vector<Token> m_tokens;
 	i32				   m_tokenCursor;
-	Expression*		   m_pRootExpression;
+	Ref<Expression>	   m_pRootExpression;
 	bool			   m_isValid;
 };
 

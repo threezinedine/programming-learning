@@ -7,17 +7,17 @@ namespace ntt {
 class OperatorExpression : public Expression
 {
 public:
-	OperatorExpression(ExpressionType type, Expression* left = nullptr, Expression* right = nullptr);
+	OperatorExpression(ExpressionType type, Ref<Expression> left = nullptr, Ref<Expression> right = nullptr);
 	~OperatorExpression();
 
 	nlohmann::json toJson() const override;
 
-	inline void setLeft(Expression* left)
+	inline void setLeft(Ref<Expression> left)
 	{
 		m_left = left;
 	}
 
-	inline void setRight(Expression* right)
+	inline void setRight(Ref<Expression> right)
 	{
 		m_right = right;
 	}
@@ -43,8 +43,8 @@ public:
 	}
 
 private:
-	Expression* m_left;
-	Expression* m_right;
+	Ref<Expression> m_left;
+	Ref<Expression> m_right;
 };
 
 } // namespace ntt
