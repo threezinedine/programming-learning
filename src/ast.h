@@ -49,6 +49,7 @@ public:
 private:
 	bool parseLiteral(ParseNode* pNode);
 	bool parseEpsilon(ParseNode* pNode);
+	bool parseToken(ParseNode* pNode, TokenType expectedType);
 
 private:
 	bool parseExp(ParseNode* pNode);

@@ -70,6 +70,7 @@ using ParseFunc = std::function<bool(ParseNode* pNode)>;
 			if (handleFuncs[i](_pTempNode))                                                                            \
 			{                                                                                                          \
 				parentNode->pParseNodes[parentNode->parseNodesCount++] = _pTempNode;                                   \
+				parentNode->handler									   = handleOrNode;                                 \
 				return true;                                                                                           \
 			}                                                                                                          \
 			else                                                                                                       \
@@ -79,6 +80,24 @@ using ParseFunc = std::function<bool(ParseNode* pNode)>;
 		}                                                                                                              \
 		return false;                                                                                                  \
 	} while (0)
+
+#define GET_EXP(node, index) ((Expression*)(node->pParseNodes[index]->handler(node->pParseNodes[index])))
+
+#define VERIFY_EXP(...)                                                                                                \
+	do                                                                                                                 \
+	{                                                                                                                  \
+		Expression* exps[]	 = {__VA_ARGS__};                                                                          \
+		i32			expCount = sizeof(exps) / sizeof(Expression*);                                                     \
+		for (i32 i = 0; i < expCount; i++)                                                                             \
+		{                                                                                                              \
+			if (exps[i] == nullptr)                                                                                    \
+			{                                                                                                          \
+				return nullptr;                                                                                        \
+			}                                                                                                          \
+		}                                                                                                              \
+	} while (0)
+
+#define PARSE_TOKEN(expectedType) [&](ParseNode* pNode) { return parseToken(pNode, expectedType); }
 
 static Expression* handleLiteralNode(ParseNode* pNode)
 {
@@ -158,13 +177,64 @@ bool AST::parseExp(ParseNode* pNode)
 	return parseAddExp(pNode);
 }
 
+static Expression* handleAddExpNode(ParseNode* pNode);
+
 bool AST::parseAddExp(ParseNode* pNode)
 {
+#if 0
+	// clang-format off
 	PARSE_NODE_AND(
-		pNode, [&](ParseNode* p) { return p->pParseNodes[0]->handler(p->pParseNodes[0]); }, AST_BINDING(parseLiteral));
+		pNode, handleAddExpNode, 
+		AST_BINDING(parseLiteral), 
+		PARSE_TOKEN(TOKEN_TYPE_OPERATOR), 
+		AST_BINDING(parseLiteral));
+	// clang-format on
+#else
+	PARSE_NODE_AND(pNode,
+				   handleAddExpNode,
+				   AST_BINDING(parseLiteral),
+				   PARSE_TOKEN(TOKEN_TYPE_OPERATOR),
+				   AST_BINDING(parseLiteral));
+#endif
+}
+
+static Expression* handleAddExpNode(ParseNode* pNode)
+{
+	Expression* leftExp	  = GET_EXP(pNode, 0);
+	Expression* operation = GET_EXP(pNode, 1);
+	Expression* rightExp  = GET_EXP(pNode, 2);
+
+	VERIFY_EXP(leftExp, operation, rightExp);
+
+	if (operation->getType() != EXPRESSION_TYPE_LITERAL)
+	{
+		return nullptr;
+	}
+
+	const Token& opToken = ((LiteralExpression*)operation)->getToken();
+
+	if (opToken.type != TOKEN_TYPE_OPERATOR)
+	{
+		return nullptr;
+	}
+
+	switch (opToken.value.stringValue[0])
+	{
+	case '+':
+		return new OperatorExpression(EXPRESSION_TYPE_ADD, leftExp, rightExp);
+	case '-':
+		return new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, leftExp, rightExp);
+	default:
+		return nullptr;
+	};
 }
 
 bool AST::parseLiteral(ParseNode* pNode)
+{
+	PARSE_NODE_OR(pNode, PARSE_TOKEN(TOKEN_TYPE_INTEGER), PARSE_TOKEN(TOKEN_TYPE_FLOAT));
+}
+
+bool AST::parseToken(ParseNode* pNode, TokenType expectedType)
 {
 	if (m_tokenCursor >= static_cast<i32>(m_tokens.size()))
 	{
@@ -172,11 +242,11 @@ bool AST::parseLiteral(ParseNode* pNode)
 	}
 
 	Token& token = m_tokens[m_tokenCursor];
-	if (token.type == TOKEN_TYPE_INTEGER || token.type == TOKEN_TYPE_FLOAT)
+	if (token.type == expectedType)
 	{
+		pNode->pToken  = &token;
 		pNode->type	   = PARSE_ATOMIC_LITERAL;
 		pNode->handler = handleLiteralNode;
-		pNode->pToken  = &token;
 		m_tokenCursor++;
 		return true;
 	}

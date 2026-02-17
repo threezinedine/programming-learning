@@ -10,6 +10,11 @@ public:
 	LiteralExpression(Token token);
 	~LiteralExpression() override;
 
+	const Token& getToken() const
+	{
+		return m_token;
+	}
+
 	std::string toString() const override;
 
 private:

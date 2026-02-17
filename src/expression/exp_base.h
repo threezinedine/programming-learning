@@ -10,6 +10,11 @@ public:
 	Expression(ExpressionType type);
 	virtual ~Expression();
 
+	inline ExpressionType getType() const
+	{
+		return type;
+	}
+
 	virtual std::string toString() const = 0;
 
 	void print() const
