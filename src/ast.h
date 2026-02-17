@@ -28,19 +28,19 @@ RightAddExp: + LeftAddExp RightAddExp
 LeftAddExp: LeftMulExp RightMulExp;
 
 RightMulExp: * LeftMulExp RightMulExp
-			 | / LeftMulExp RightMulExp
-			 | ε
-			 ;
+		   | / LeftMulExp RightMulExp
+		   | ε
+		   ;
 
 LeftMulExp: PrimaryExp;
 
 PrimaryExp: ( AddExp )
-			| Literal
-			;
+		  | Literal
+		  ;
 
 Literal: Integer
-		| Float
-		;
+	   | Float
+	   ;
 
  */
 
@@ -63,7 +63,7 @@ public:
 private:
 	Ref<Expression> parsePrimaryExp();
 	Ref<Expression> parseLiteral();
-	Ref<Expression> parseLiteral_1();
+	Ref<Expression> parseExpBlock();
 	Ref<Expression> parseEpsilon();
 	Token*			parseToken(TokenType expectedType);
 

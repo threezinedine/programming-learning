@@ -215,11 +215,11 @@ Ref<Expression> AST::parsePrimaryExp()
 
 	RESTORE_CHECKPOINT();
 
-	Ref<Expression> pLiteral_1 = parseLiteral_1();
+	Ref<Expression> pExpBlock = parseExpBlock();
 
-	if (pLiteral_1 != nullptr)
+	if (pExpBlock != nullptr)
 	{
-		return pLiteral_1;
+		return pExpBlock;
 	}
 
 	RESTORE_CHECKPOINT();
@@ -238,6 +238,8 @@ Ref<Expression> AST::parseLiteral()
 	{
 	case TOKEN_TYPE_INTEGER:
 	case TOKEN_TYPE_FLOAT:
+	case TOKEN_TYPE_BOOLEAN:
+	case TOKEN_TYPE_STRING:
 		m_tokenCursor++;
 		return CreateRef<LiteralExpression>(token);
 	default:
@@ -245,7 +247,7 @@ Ref<Expression> AST::parseLiteral()
 	}
 }
 
-Ref<Expression> AST::parseLiteral_1()
+Ref<Expression> AST::parseExpBlock()
 {
 	SETUP();
 	SAVE_CHECKPOINT();

@@ -46,6 +46,10 @@ int main(void)
 		printf("\n");                                                                                                  \
 	} while (0)
 
+	TEST_EXPR("3.14");
+	TEST_EXPR("\"Hello, World!\"");
+	TEST_EXPR("true");
+	TEST_EXPR("false");
 	TEST_EXPR("3");
 	TEST_EXPR("3 * 4");
 	TEST_EXPR("3 + 4");
