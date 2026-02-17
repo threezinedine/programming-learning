@@ -15,7 +15,7 @@ public:
 		return m_token;
 	}
 
-	std::string toString() const override;
+	nlohmann::json toJson() const override;
 
 private:
 	Token m_token;

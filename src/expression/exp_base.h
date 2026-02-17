@@ -1,5 +1,6 @@
 #pragma once
 #include "exp_types.h"
+#include <nlohmann/json.hpp>
 #include <string>
 
 namespace ntt {
@@ -15,11 +16,11 @@ public:
 		return type;
 	}
 
-	virtual std::string toString() const = 0;
+	virtual nlohmann::json toJson() const = 0;
 
 	void print() const
 	{
-		printf("%s", toString().c_str());
+		printf("%s", toJson().dump(4).c_str());
 	}
 
 protected:
@@ -32,9 +33,9 @@ public:
 	EpsilonExpression();
 	~EpsilonExpression();
 
-	std::string toString() const override
+	nlohmann::json toJson() const override
 	{
-		return "ε";
+		return nlohmann::json("{ \"type\": \"Epsilon\" }");
 	}
 };
 

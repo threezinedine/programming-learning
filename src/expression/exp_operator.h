@@ -10,7 +10,7 @@ public:
 	OperatorExpression(ExpressionType type, Expression* left, Expression* right);
 	~OperatorExpression();
 
-	std::string toString() const override;
+	nlohmann::json toJson() const override;
 
 private:
 	Expression* m_left;

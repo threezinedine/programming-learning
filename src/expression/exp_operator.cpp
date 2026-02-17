@@ -16,46 +16,32 @@ OperatorExpression::~OperatorExpression()
 	delete m_right;
 }
 
-std::string OperatorExpression::toString() const
+nlohmann::json OperatorExpression::toJson() const
 {
-	char buffer[256] = {0};
-
+	nlohmann::json jsonObj;
 	switch (type)
 	{
 	case EXPRESSION_TYPE_ADD:
-		snprintf(buffer,
-				 sizeof(buffer),
-				 "<AddExp left=%s right=%s>",
-				 m_left->toString().c_str(),
-				 m_right->toString().c_str());
+		jsonObj["type"] = "Add";
 		break;
 	case EXPRESSION_TYPE_SUBTRACT:
-		snprintf(buffer,
-				 sizeof(buffer),
-				 "<SubtractExp left=%s right=%s>",
-				 m_left->toString().c_str(),
-				 m_right->toString().c_str());
+		jsonObj["type"] = "Subtract";
 		break;
 	case EXPRESSION_TYPE_MULTIPLY:
-		snprintf(buffer,
-				 sizeof(buffer),
-				 "<MultiplyExp left=%s right=%s>",
-				 m_left->toString().c_str(),
-				 m_right->toString().c_str());
+		jsonObj["type"] = "Multiply";
 		break;
 	case EXPRESSION_TYPE_DIVIDE:
-		snprintf(buffer,
-				 sizeof(buffer),
-				 "<DivideExp left=%s right=%s>",
-				 m_left->toString().c_str(),
-				 m_right->toString().c_str());
+		jsonObj["type"] = "Divide";
 		break;
 	default:
-		printf(" ? ");
+		jsonObj["type"] = "Unknown";
 		break;
 	}
 
-	return std::string(buffer);
+	jsonObj["left"]	 = m_left->toJson();
+	jsonObj["right"] = m_right->toJson();
+
+	return jsonObj;
 }
 
 } // namespace ntt

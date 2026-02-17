@@ -14,10 +14,23 @@ file(
     "src/*.h"
 )
 
+include(FetchContent)
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+)
+FetchContent_MakeAvailable(json)
+
 add_executable(
     ${PROJECT_NAME}
     ${SOURCE_FILES}
     ${HEADER_FILES}
+)
+
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE
+    nlohmann_json
 )
 
 target_include_directories(

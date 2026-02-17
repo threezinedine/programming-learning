@@ -30,6 +30,7 @@ int main(void)
 #define TEST_EXPR(code)                                                                                                \
 	do                                                                                                                 \
 	{                                                                                                                  \
+		printf("############# Expression: %s #############\n", code);                                                  \
 		ntt::AST ast(code);                                                                                            \
 		if (ast.isValid())                                                                                             \
 		{                                                                                                              \
@@ -40,6 +41,9 @@ int main(void)
 		{                                                                                                              \
 			fprintf(stderr, "Failed to parse expression: %s\n", code);                                                 \
 		}                                                                                                              \
+		printf("\n");                                                                                                  \
+		printf("\n");                                                                                                  \
+		printf("\n");                                                                                                  \
 	} while (0)
 
 	TEST_EXPR("3");

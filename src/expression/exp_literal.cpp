@@ -12,24 +12,26 @@ LiteralExpression::~LiteralExpression()
 {
 }
 
-std::string LiteralExpression::toString() const
+nlohmann::json LiteralExpression::toJson() const
 {
-	char buffer[256] = {0};
+	nlohmann::json jsonObj;
 
-	if (m_token.type == TOKEN_TYPE_INTEGER)
+	switch (m_token.type)
 	{
-		snprintf(buffer, sizeof(buffer), "%d", m_token.value.integerValue);
-		return std::string(buffer);
+	case TOKEN_TYPE_INTEGER:
+		jsonObj["type"]	 = "Integer";
+		jsonObj["value"] = m_token.value.integerValue;
+		break;
+	case TOKEN_TYPE_FLOAT:
+		jsonObj["type"]	 = "Float";
+		jsonObj["value"] = m_token.value.floatValue;
+		break;
+	default:
+		jsonObj["type"] = "Unknown";
+		break;
 	}
-	else if (m_token.type == TOKEN_TYPE_FLOAT)
-	{
-		snprintf(buffer, sizeof(buffer), "%f", m_token.value.floatValue);
-		return std::string(buffer);
-	}
-	else
-	{
-		return "0";
-	}
+
+	return jsonObj;
 }
 
 } // namespace ntt
