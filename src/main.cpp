@@ -13,22 +13,13 @@ int main(void)
 		return 1;
 	}
 
-	std::string				sourceCode((std::istreambuf_iterator<char>(sourceFile)), std::istreambuf_iterator<char>());
-	std::vector<ntt::Token> tokens;
+	std::string sourceCode((std::istreambuf_iterator<char>(sourceFile)), std::istreambuf_iterator<char>());
+	ntt::AST	ast(sourceCode);
 
-	if (!ntt::parseTokens(sourceCode, tokens))
+	if (ast.isValid())
 	{
-		fprintf(stderr, "Failed to parse tokens.\n");
-		return 1;
-	}
-
-	ntt::Expression* exp = ntt::parseExp(tokens);
-
-	if (exp)
-	{
-		exp->print();
+		ast.getRootExpression()->print();
 		printf("\n");
-		delete exp;
 	}
 	else
 	{

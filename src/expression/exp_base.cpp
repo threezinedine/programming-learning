@@ -11,4 +11,13 @@ Expression::~Expression()
 {
 }
 
+EpsilonExpression::EpsilonExpression()
+	: Expression(EXPRESSION_TYPE_EPSILON)
+{
+}
+
+EpsilonExpression::~EpsilonExpression()
+{
+}
+
 } // namespace ntt

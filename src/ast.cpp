@@ -34,167 +34,161 @@ Literal: Integer
 
  */
 
-#define VALIDATE_PARSE_FUNCTION()                                                                                      \
-	do                                                                                                                 \
-	{                                                                                                                  \
-		if (tokenCursor >= static_cast<i32>(tokens.size()))                                                            \
-		{                                                                                                              \
-			return nullptr;                                                                                            \
-		}                                                                                                              \
-	} while (0)
+using ParseFunc = std::function<bool(ParseNode* pNode)>;
 
-#define PARSE_SUB_FUNCTION(shiftTokenCount, parseFunc)                                                                 \
+#define AST_BINDING(func) std::bind(&AST::func, this, std::placeholders::_1)
+
+#define PARSE_NODE_AND(parentNode, handlerPtr, ...)                                                                    \
 	do                                                                                                                 \
 	{                                                                                                                  \
-		i32 pivot = tokenCursor;                                                                                       \
-                                                                                                                       \
-		for (i32 i = 0; i < shiftTokenCount; i++)                                                                      \
+		i32		  pivot			= m_tokenCursor;                                                                       \
+		ParseFunc handleFuncs[] = {__VA_ARGS__};                                                                       \
+		i32		  funcCount		= sizeof(handleFuncs) / sizeof(ParseFunc);                                             \
+		for (i32 i = 0; i < funcCount; i++)                                                                            \
 		{                                                                                                              \
-			if (tokenCursor >= static_cast<i32>(tokens.size()))                                                        \
+			ParseNode* _pTempNode								   = newNode();                                        \
+			parentNode->pParseNodes[parentNode->parseNodesCount++] = _pTempNode;                                       \
+			if (!handleFuncs[i](_pTempNode))                                                                           \
 			{                                                                                                          \
-				return nullptr;                                                                                        \
+				m_tokenCursor = pivot;                                                                                 \
+				return false;                                                                                          \
 			}                                                                                                          \
-			tokenCursor++;                                                                                             \
 		}                                                                                                              \
-                                                                                                                       \
-		Expression* subExp = parseFunc(tokens, tokenCursor);                                                           \
-		if (subExp)                                                                                                    \
-		{                                                                                                              \
-			return subExp;                                                                                             \
-		}                                                                                                              \
-		tokenCursor = pivot;                                                                                           \
+		parentNode->handler = handlerPtr;                                                                              \
+		return true;                                                                                                   \
 	} while (0)
 
-static Expression* parseAddExp(const std::vector<Token>& tokens, i32& tokenCursor);
-static Expression* parseLeftAddExp(const std::vector<Token>& tokens, i32& tokenCursor);
-static Expression* parseRightAddExp(const std::vector<Token>& tokens, i32& tokenCursor, Expression* leftExp);
-static Expression* parseLeftMulExp(const std::vector<Token>& tokens, i32& tokenCursor);
-static Expression* parseRightMulExp(const std::vector<Token>& tokens, i32& tokenCursor);
-static Expression* parsePrimaryExp(const std::vector<Token>& tokens, i32& tokenCursor);
-static Expression* parseLiteral(const std::vector<Token>& tokens, i32& tokenCursor);
+#define PARSE_NODE_OR(parentNode, ...)                                                                                 \
+	do                                                                                                                 \
+	{                                                                                                                  \
+		i32		  pivot			= m_tokenCursor;                                                                       \
+		ParseFunc handleFuncs[] = {__VA_ARGS__};                                                                       \
+		i32		  funcCount		= sizeof(handleFuncs) / sizeof(ParseFunc);                                             \
+		for (i32 i = 0; i < funcCount; i++)                                                                            \
+		{                                                                                                              \
+			ParseNode* _pTempNode = newNode();                                                                         \
+			if (handleFuncs[i](_pTempNode))                                                                            \
+			{                                                                                                          \
+				parentNode->pParseNodes[parentNode->parseNodesCount++] = _pTempNode;                                   \
+				return true;                                                                                           \
+			}                                                                                                          \
+			else                                                                                                       \
+			{                                                                                                          \
+				m_tokenCursor = pivot;                                                                                 \
+			}                                                                                                          \
+		}                                                                                                              \
+		return false;                                                                                                  \
+	} while (0)
 
-Expression* parseExp(const std::vector<Token>& tokens)
+static Expression* handleLiteralNode(ParseNode* pNode)
 {
-	i32 tokenCount	= static_cast<i32>(tokens.size());
-	i32 tokenCursor = 0;
-
-	Expression* exp = parseAddExp(tokens, tokenCursor);
-
-	if (tokenCursor != tokenCount)
-	{
-		// Handle error: not all tokens were consumed
-		delete exp;
-		return nullptr;
-	}
-
-	return exp;
+	return new LiteralExpression(*pNode->pToken);
 }
 
-static Expression* parseAddExp(const std::vector<Token>& tokens, i32& tokenCursor)
+static Expression* handleEpsilonNode(ParseNode* pNode)
 {
-	VALIDATE_PARSE_FUNCTION();
-
-	i32 pivot = tokenCursor;
-
-	Expression* leftExp = parseLeftAddExp(tokens, tokenCursor);
-
-	if (!leftExp)
-	{
-		tokenCursor = pivot;
-		return nullptr;
-	}
-
-	pivot = tokenCursor;
-
-	Expression* rightExp = parseRightAddExp(tokens, tokenCursor, leftExp);
-
-	if (!rightExp)
-	{
-		tokenCursor = pivot;
-		return leftExp;
-	}
-
-	return rightExp;
+	return new EpsilonExpression();
 }
 
-static Expression* parseLeftAddExp(const std::vector<Token>& tokens, i32& tokenCursor)
+static Expression* handleOrNode(ParseNode* pNode)
 {
-	return parsePrimaryExp(tokens, tokenCursor); // TODO: This should be LeftMulExp
+	return pNode->pParseNodes[0]->handler(pNode->pParseNodes[0]);
 }
 
-static Expression* parseRightAddExp(const std::vector<Token>& tokens, i32& tokenCursor, Expression* leftExp)
+AST::AST(const std::string& sourceCode, TokenParser tokenParser)
 {
-	VALIDATE_PARSE_FUNCTION();
+	memset(m_nodesHub, 0, sizeof(m_nodesHub));
+	m_nodesHubCursor = 0;
 
-	const Token& token = tokens[tokenCursor];
-
-	if (token.type == TOKEN_TYPE_OPERATOR)
+	if (tokenParser == nullptr)
 	{
-		if (token.value.stringValue[0] == '+')
+		tokenParser = parseTokens;
+	}
+
+	if (!tokenParser(sourceCode, m_tokens))
+	{
+		m_pRootExpression = nullptr;
+		return;
+	}
+
+	m_tokenCursor  = 0;
+	i32 nodeIndex  = 0;
+	m_pRootExpNode = newNode();
+	m_isValid	   = parseExp(m_pRootExpNode);
+
+	if (m_isValid)
+	{
+		if (m_pRootExpNode->handler == nullptr)
 		{
-			Expression* rightExp = parseLeftAddExp(tokens, ++tokenCursor);
-			if (rightExp)
-			{
-				return new OperatorExpression(EXPRESSION_TYPE_ADD, leftExp, rightExp);
-			}
+			m_pRootExpression = nullptr;
+			return;
 		}
-		else if (token.value.stringValue[0] == '-')
+		else
 		{
-			Expression* rightExp = parseLeftAddExp(tokens, ++tokenCursor);
-			if (rightExp)
-			{
-				return new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, leftExp, rightExp);
-			}
+			m_pRootExpression = m_pRootExpNode->handler(m_pRootExpNode);
 		}
-	}
-
-	return leftExp;
-}
-
-static Expression* parseLeftMulExp(const std::vector<Token>& tokens, i32& tokenCursor)
-{
-	return nullptr;
-}
-
-static Expression* parseRightMulExp(const std::vector<Token>& tokens, i32& tokenCursor)
-{
-	return nullptr;
-}
-
-static Expression* parsePrimaryExp(const std::vector<Token>& tokens, i32& tokenCursor)
-{
-	VALIDATE_PARSE_FUNCTION();
-
-	i32 pivotCursor = tokenCursor;
-
-	const Token& token = tokens[tokenCursor];
-
-	if (token.type == TOKEN_TYPE_OPEN_PARENTHESIS)
-	{
-		Expression* exp = nullptr;
-		PARSE_SUB_FUNCTION(1, parseAddExp);
 	}
 	else
 	{
-		PARSE_SUB_FUNCTION(0, parseLiteral);
+		m_pRootExpression = nullptr;
 	}
-
-	return nullptr;
 }
 
-static Expression* parseLiteral(const std::vector<Token>& tokens, i32& tokenCursor)
+ParseNode* AST::newNode()
 {
-	VALIDATE_PARSE_FUNCTION();
-
-	const Token& token = tokens[tokenCursor];
-
-	if (token.type == TOKEN_TYPE_INTEGER || token.type == TOKEN_TYPE_FLOAT)
+	if (m_nodesHubCursor >= MAX_NODES)
 	{
-		tokenCursor++;
-		return new LiteralExpression(token);
+		return nullptr;
 	}
 
-	return nullptr;
+	return &m_nodesHub[m_nodesHubCursor++];
+}
+
+AST::~AST()
+{
+	if (m_pRootExpression != nullptr)
+	{
+		delete m_pRootExpression;
+		m_pRootExpression = nullptr;
+	}
+}
+
+bool AST::parseExp(ParseNode* pNode)
+{
+	return parseAddExp(pNode);
+}
+
+bool AST::parseAddExp(ParseNode* pNode)
+{
+	PARSE_NODE_AND(
+		pNode, [&](ParseNode* p) { return p->pParseNodes[0]->handler(p->pParseNodes[0]); }, AST_BINDING(parseLiteral));
+}
+
+bool AST::parseLiteral(ParseNode* pNode)
+{
+	if (m_tokenCursor >= static_cast<i32>(m_tokens.size()))
+	{
+		return false;
+	}
+
+	Token& token = m_tokens[m_tokenCursor];
+	if (token.type == TOKEN_TYPE_INTEGER || token.type == TOKEN_TYPE_FLOAT)
+	{
+		pNode->type	   = PARSE_ATOMIC_LITERAL;
+		pNode->handler = handleLiteralNode;
+		pNode->pToken  = &token;
+		m_tokenCursor++;
+		return true;
+	}
+
+	return false;
+}
+
+bool AST::parseEpsilon(ParseNode* pNode)
+{
+	pNode->type	   = PARSE_ATOMIC_EPSILON;
+	pNode->handler = handleEpsilonNode;
+	return true;
 }
 
 } // namespace ntt

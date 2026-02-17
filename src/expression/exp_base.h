@@ -21,4 +21,16 @@ protected:
 	ExpressionType type;
 };
 
+class EpsilonExpression : public Expression
+{
+public:
+	EpsilonExpression();
+	~EpsilonExpression();
+
+	std::string toString() const override
+	{
+		return "ε";
+	}
+};
+
 } // namespace ntt
