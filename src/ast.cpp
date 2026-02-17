@@ -168,15 +168,28 @@ static Expression* handleRightAddExp_1(Expression* left, Ref<ParseNode> pNode)
 	Expression* op	  = GET_EXP(pNode, 0);
 	Expression* right = GET_EXP(pNode, 1);
 
+	Expression* pNextExp = nullptr;
+
 	const Token& opToken = ((LiteralExpression*)op)->getToken();
 	switch (opToken.value.stringValue[0])
 	{
 	case '+':
-		return new OperatorExpression(EXPRESSION_TYPE_ADD, left, right);
+		pNextExp = new OperatorExpression(EXPRESSION_TYPE_ADD, left, right);
+		break;
 	case '-':
-		return new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, left, right);
+		pNextExp = new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, left, right);
+		break;
 	default:
 		return nullptr;
+	}
+
+	if (IS_ESP_NODE(pNode->pParseNodes[2]))
+	{
+		return pNextExp;
+	}
+	else
+	{
+		return handleRightAddExp_1(pNextExp, pNode->pParseNodes[2]);
 	}
 }
 

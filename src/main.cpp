@@ -6,6 +6,7 @@
 
 int main(void)
 {
+#if 0
 	std::ifstream sourceFile(STRINGIFY(BASE_DIR) "/example.ntt");
 	if (!sourceFile.is_open())
 	{
@@ -25,6 +26,29 @@ int main(void)
 	{
 		fprintf(stderr, "Failed to parse expression.\n");
 	}
+#else
+#define TEST_EXPR(code)                                                                                                \
+	do                                                                                                                 \
+	{                                                                                                                  \
+		ntt::AST ast(code);                                                                                            \
+		if (ast.isValid())                                                                                             \
+		{                                                                                                              \
+			ast.getRootExpression()->print();                                                                          \
+			printf("\n");                                                                                              \
+		}                                                                                                              \
+		else                                                                                                           \
+		{                                                                                                              \
+			fprintf(stderr, "Failed to parse expression: %s\n", code);                                                 \
+		}                                                                                                              \
+	} while (0)
+
+	TEST_EXPR("3");
+	TEST_EXPR("3 + 4");
+	TEST_EXPR("3 + 4 - 5");
+	// TEST_EXPR("3 + 4 * 5");
+	// TEST_EXPR("(3 + 4) * 5");
+
+#endif
 
 	return 0;
 }
