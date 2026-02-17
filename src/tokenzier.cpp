@@ -7,7 +7,10 @@ namespace ntt {
 TokenPattern patterns[] = {
 	{TOKEN_TYPE_FLOAT            , std::regex("^\\d+\\.\\d+")    },
 	{TOKEN_TYPE_INTEGER          , std::regex("^\\d+")	         },
-	{TOKEN_TYPE_OPERATOR	     , std::regex("^\\+|\\-|\\*|/|=")},
+	{TOKEN_TYPE_OPERATOR_ADD     , std::regex("^\\+")            },
+	{TOKEN_TYPE_OPERATOR_SUB     , std::regex("^\\-")            },
+	{TOKEN_TYPE_OPERATOR_MUL     , std::regex("^\\*")            },
+	{TOKEN_TYPE_OPERATOR_DIV     , std::regex("^/")             },
 	{TOKEN_TYPE_OPEN_PARENTHESIS , std::regex("^\\(") 			 },
 	{TOKEN_TYPE_CLOSE_PARENTHESIS, std::regex("^\\)") 			 },
 };
@@ -109,7 +112,17 @@ void printToken(const Token& token)
 		break;
 	case TOKEN_TYPE_STRING:
 		printf("<Token type=STRING value=%s>\n", token.value.stringValue);
-	case TOKEN_TYPE_OPERATOR:
+		break;
+	case TOKEN_TYPE_OPERATOR_ADD:
+		printf("<Token type=OPERATOR value=%s>\n", token.value.stringValue);
+		break;
+	case TOKEN_TYPE_OPERATOR_SUB:
+		printf("<Token type=OPERATOR value=%s>\n", token.value.stringValue);
+		break;
+	case TOKEN_TYPE_OPERATOR_MUL:
+		printf("<Token type=OPERATOR value=%s>\n", token.value.stringValue);
+		break;
+	case TOKEN_TYPE_OPERATOR_DIV:
 		printf("<Token type=OPERATOR value=%s>\n", token.value.stringValue);
 		break;
 	default:

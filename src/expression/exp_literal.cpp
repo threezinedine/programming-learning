@@ -14,7 +14,7 @@ LiteralExpression::~LiteralExpression()
 
 nlohmann::json LiteralExpression::toJson() const
 {
-	nlohmann::json jsonObj;
+	nlohmann::json jsonObj = nlohmann::json::parse("{}");
 
 	switch (m_token.type)
 	{

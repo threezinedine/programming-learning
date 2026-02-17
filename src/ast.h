@@ -11,15 +11,6 @@ namespace ntt {
 struct ParseNode;
 
 typedef bool (*TokenParser)(const std::string& sourceCode, std::vector<Token>& tokens);
-using ParseNodeHandler = std::function<Expression*(Ref<ParseNode> pNode)>;
-
-struct ParseNode
-{
-	Ref<ParseNode>				pParentNode;
-	std::vector<Ref<ParseNode>> pParseNodes;
-	const Token*				pToken;
-	ParseNodeHandler			handler;
-};
 
 /*
 
@@ -70,23 +61,25 @@ public:
 	}
 
 private:
-	bool parseLiteral(Ref<ParseNode> pNode);
-	bool parseLiteral_1(Ref<ParseNode> pNode);
-	bool parseEpsilon(Ref<ParseNode> pNode);
-	bool parseToken(Ref<ParseNode> pNode, TokenType expectedType);
+	Expression* parsePrimaryExp();
+	Expression* parseLiteral();
+	Expression* parseLiteral_1();
+	Expression* parseEpsilon();
+	Expression* parseToken(TokenType expectedType);
 
 private:
-	bool parseExp(Ref<ParseNode> pNode);
-	bool parseAddExp(Ref<ParseNode> pNode);
-	bool parseLeftAddExp(Ref<ParseNode> pNode);
+	Expression* parseExp();
+	Expression* parseAddExp();
+	Expression* parseLeftAddExp();
+	bool		parseRightAddExp(OperatorExpression** ppAddExp);
 
-	bool parseRightAddExp_1(Ref<ParseNode> pNode);
-	bool parseRightAddExp(Ref<ParseNode> pNode);
+	Expression* parseLeftMulExp();
+	Expression* parseRightMulExp_1();
+	Expression* parseRightMulExp();
 
 private:
 	std::vector<Token> m_tokens;
 	i32				   m_tokenCursor;
-	Ref<ParseNode>	   m_pRootExpNode;
 	Expression*		   m_pRootExpression;
 	bool			   m_isValid;
 };

@@ -18,7 +18,7 @@ OperatorExpression::~OperatorExpression()
 
 nlohmann::json OperatorExpression::toJson() const
 {
-	nlohmann::json jsonObj;
+	nlohmann::json jsonObj = nlohmann::json::parse("{}");
 	switch (type)
 	{
 	case EXPRESSION_TYPE_ADD:
