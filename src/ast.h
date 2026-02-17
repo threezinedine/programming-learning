@@ -4,31 +4,54 @@
 #include "tokenizer.h"
 #include <functional>
 
-#define MAX_NODES 10
+#define MAX_NODES 20
 
 namespace ntt {
 
 struct ParseNode;
 
-enum ParseAtomic
-{
-	PARSE_ATOMIC_EPSILON,
-	PARSE_ATOMIC_LITERAL,
-	PARSE_ATOMIC_OR,
-	PARSE_ATOMIC_AND,
-};
-
 typedef bool (*TokenParser)(const std::string& sourceCode, std::vector<Token>& tokens);
-using ParseNodeHandler = std::function<Expression*(ParseNode* pNode)>;
+using ParseNodeHandler = std::function<Expression*(Ref<ParseNode> pNode)>;
 
 struct ParseNode
 {
-	ParseAtomic		 type;
-	ParseNode*		 pParseNodes[10];
-	i32				 parseNodesCount;
-	Token*			 pToken;
-	ParseNodeHandler handler;
+	Ref<ParseNode>				pParentNode;
+	std::vector<Ref<ParseNode>> pParseNodes;
+	const Token*				pToken;
+	ParseNodeHandler			handler;
 };
+
+/*
+
+Grammar:
+
+Exp: AddExp;
+
+AddExp: LeftAddExp RightAddExp;
+
+RightAddExp: + LeftAddExp RightAddExp
+		   | - LeftAddExp RightAddExp
+		   | ε
+		   ;
+
+LeftAddExp: LeftMulExp RightMulExp;
+
+RightMulExp: * LeftMulExp RightMulExp
+			 | / LeftMulExp RightMulExp
+			 | ε
+			 ;
+
+LeftMulExp: PrimaryExp;
+
+PrimaryExp: ( AddExp )
+			| Literal
+			;
+
+Literal: Integer
+		| Float
+		;
+
+ */
 
 class AST
 {
@@ -36,7 +59,7 @@ public:
 	AST(const std::string& sourceCode, TokenParser tokenParser = nullptr);
 	~AST();
 
-	inline Expression* getRootExpression() const
+	inline const Expression* getRootExpression() const
 	{
 		return m_pRootExpression;
 	}
@@ -47,25 +70,24 @@ public:
 	}
 
 private:
-	bool parseLiteral(ParseNode* pNode);
-	bool parseEpsilon(ParseNode* pNode);
-	bool parseToken(ParseNode* pNode, TokenType expectedType);
+	bool parseLiteral(Ref<ParseNode> pNode);
+	bool parseEpsilon(Ref<ParseNode> pNode);
+	bool parseToken(Ref<ParseNode> pNode, TokenType expectedType);
 
 private:
-	bool parseExp(ParseNode* pNode);
-	bool parseAddExp(ParseNode* pNode);
+	bool parseExp(Ref<ParseNode> pNode);
+	bool parseAddExp(Ref<ParseNode> pNode);
+	bool parseLeftAddExp(Ref<ParseNode> pNode);
 
-private:
-	ParseNode* newNode();
+	bool parseRightAddExp_1(Ref<ParseNode> pNode);
+	bool parseRightAddExp(Ref<ParseNode> pNode);
 
 private:
 	std::vector<Token> m_tokens;
 	i32				   m_tokenCursor;
-	ParseNode*		   m_pRootExpNode;
+	Ref<ParseNode>	   m_pRootExpNode;
 	Expression*		   m_pRootExpression;
 	bool			   m_isValid;
-	ParseNode		   m_nodesHub[MAX_NODES];
-	i32				   m_nodesHubCursor;
 };
 
 } // namespace ntt
