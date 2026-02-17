@@ -76,7 +76,30 @@ Expression* AST::parseAddExp()
 
 Expression* AST::parseLeftAddExp()
 {
-	return parsePrimaryExp();
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Expression* pLeftMulExp = parseLeftMulExp();
+
+	if (pLeftMulExp == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	SAVE_CHECKPOINT();
+	OperatorExpression* pMulExp = new OperatorExpression(EXPRESSION_TYPE_MULTIPLY);
+	pMulExp->setLeft(pLeftMulExp);
+
+	if (parseRightMulExp(&pMulExp))
+	{
+		return pMulExp;
+	}
+	else
+	{
+		RESTORE_CHECKPOINT();
+		return pLeftMulExp;
+	}
 }
 
 bool AST::parseRightAddExp(OperatorExpression** ppAddExp)
@@ -131,17 +154,57 @@ bool AST::parseRightAddExp(OperatorExpression** ppAddExp)
 
 Expression* AST::parseLeftMulExp()
 {
-	return nullptr;
+	return parsePrimaryExp();
 }
 
-Expression* AST::parseRightMulExp_1()
+bool AST::parseRightMulExp(OperatorExpression** ppMulExp)
 {
-	return nullptr;
-}
+	SETUP();
+	SAVE_CHECKPOINT();
 
-Expression* AST::parseRightMulExp()
-{
-	return nullptr;
+	Expression* opMul = parseToken(TOKEN_TYPE_OPERATOR_MUL);
+	Expression* opDiv = parseToken(TOKEN_TYPE_OPERATOR_DIV);
+
+	if (opMul == nullptr && opDiv == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return false;
+	}
+
+	if (opMul != nullptr)
+	{
+		(*ppMulExp)->toMultiplyOperator();
+	}
+	else if (opDiv != nullptr)
+	{
+		(*ppMulExp)->toDivideOperator();
+	}
+
+	Expression* pLeftMulExp = parseLeftMulExp();
+
+	if (pLeftMulExp == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return false;
+	}
+
+	(*ppMulExp)->setRight(pLeftMulExp);
+
+	SAVE_CHECKPOINT();
+
+	OperatorExpression* pNewMulExp = new OperatorExpression(EXPRESSION_TYPE_MULTIPLY);
+	pNewMulExp->setLeft(*ppMulExp);
+
+	if (parseRightMulExp(&pNewMulExp))
+	{
+		*ppMulExp = pNewMulExp;
+	}
+	else
+	{
+		RESTORE_CHECKPOINT();
+	}
+
+	return true;
 }
 
 Expression* AST::parsePrimaryExp()

@@ -74,8 +74,7 @@ private:
 	bool		parseRightAddExp(OperatorExpression** ppAddExp);
 
 	Expression* parseLeftMulExp();
-	Expression* parseRightMulExp_1();
-	Expression* parseRightMulExp();
+	bool		parseRightMulExp(OperatorExpression** ppMulExp);
 
 private:
 	std::vector<Token> m_tokens;
