@@ -49,8 +49,7 @@ int main(void)
 	TEST_EXPR("3");
 	TEST_EXPR("3 + 4");
 	TEST_EXPR("3 + 4 - 5");
-	// TEST_EXPR("3 + 4 * 5");
-	// TEST_EXPR("(3 + 4) * 5");
+	TEST_EXPR("3 + (4 + 5)");
 
 #endif
 

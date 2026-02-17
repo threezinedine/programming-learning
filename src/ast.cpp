@@ -211,7 +211,17 @@ bool AST::parseRightAddExp(Ref<ParseNode> pNode)
 
 bool AST::parseLiteral(Ref<ParseNode> pNode)
 {
-	PARSE_NODE_OR(pNode, PARSE_TOKEN(TOKEN_TYPE_INTEGER), PARSE_TOKEN(TOKEN_TYPE_FLOAT));
+	PARSE_NODE_OR(pNode, PARSE_TOKEN(TOKEN_TYPE_INTEGER), PARSE_TOKEN(TOKEN_TYPE_FLOAT), AST_BINDING(parseLiteral_1));
+}
+
+bool AST::parseLiteral_1(Ref<ParseNode> pNode)
+{
+	PARSE_NODE_AND(
+		pNode,
+		[&](Ref<ParseNode> pNode) { return GET_EXP(pNode, 1); },
+		PARSE_TOKEN(TOKEN_TYPE_OPEN_PARENTHESIS),
+		AST_BINDING(parseAddExp),
+		PARSE_TOKEN(TOKEN_TYPE_CLOSE_PARENTHESIS));
 }
 
 bool AST::parseToken(Ref<ParseNode> pNode, TokenType expectedType)

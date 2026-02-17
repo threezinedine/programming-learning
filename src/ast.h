@@ -71,6 +71,7 @@ public:
 
 private:
 	bool parseLiteral(Ref<ParseNode> pNode);
+	bool parseLiteral_1(Ref<ParseNode> pNode);
 	bool parseEpsilon(Ref<ParseNode> pNode);
 	bool parseToken(Ref<ParseNode> pNode, TokenType expectedType);
 
