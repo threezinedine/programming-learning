@@ -138,6 +138,7 @@ bool AST::parseExp(Ref<ParseNode> pNode)
 }
 
 static Expression* handleAddExpNode(Ref<ParseNode> pNode);
+static Expression* handleRightAddExp_1(Expression* left, Ref<ParseNode> pNode);
 
 bool AST::parseAddExp(Ref<ParseNode> pNode)
 {
@@ -158,7 +159,24 @@ static Expression* handleAddExpNode(Ref<ParseNode> pNode)
 	}
 	else
 	{
-		return GET_EXP(pNode, 1);
+		return handleRightAddExp_1(GET_EXP(pNode, 0), pNode->pParseNodes[1]);
+	}
+}
+
+static Expression* handleRightAddExp_1(Expression* left, Ref<ParseNode> pNode)
+{
+	Expression* op	  = GET_EXP(pNode, 0);
+	Expression* right = GET_EXP(pNode, 1);
+
+	const Token& opToken = ((LiteralExpression*)op)->getToken();
+	switch (opToken.value.stringValue[0])
+	{
+	case '+':
+		return new OperatorExpression(EXPRESSION_TYPE_ADD, left, right);
+	case '-':
+		return new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, left, right);
+	default:
+		return nullptr;
 	}
 }
 
@@ -167,32 +185,10 @@ bool AST::parseLeftAddExp(Ref<ParseNode> pNode)
 	return parseLiteral(pNode);
 }
 
-static Expression* handleRightAddExp_1(Ref<ParseNode> pNode);
-
 bool AST::parseRightAddExp_1(Ref<ParseNode> pNode)
 {
-	PARSE_NODE_AND(pNode,
-				   handleAddExpNode,
-				   PARSE_TOKEN(TOKEN_TYPE_OPERATOR),
-				   AST_BINDING(parseLeftAddExp),
-				   AST_BINDING(parseRightAddExp));
-}
-
-static Expression* handleRightAddExp_1(Ref<ParseNode> pNode)
-{
-	Expression* op	 = GET_EXP(pNode, 0);
-	Expression* left = GET_EXP(pNode, 1);
-
-	const Token& opToken = ((LiteralExpression*)op)->getToken();
-	switch (opToken.value.stringValue[0])
-	{
-	case '+':
-		return new OperatorExpression(EXPRESSION_TYPE_ADD, left, GET_EXP(pNode, 2));
-	case '-':
-		return new OperatorExpression(EXPRESSION_TYPE_SUBTRACT, left, GET_EXP(pNode, 2));
-	default:
-		return nullptr;
-	}
+	PARSE_NODE_AND(
+		pNode, nullptr, PARSE_TOKEN(TOKEN_TYPE_OPERATOR), AST_BINDING(parseLeftAddExp), AST_BINDING(parseRightAddExp));
 }
 
 bool AST::parseRightAddExp(Ref<ParseNode> pNode)
