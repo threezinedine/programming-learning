@@ -108,6 +108,14 @@ Ref<Expression> AST::parseStatement()
 	}
 
 	RESTORE_CHECKPOINT();
+
+	Ref<Expression> pFunctionCallStatement = parseFunctionCallStatement();
+	if (pFunctionCallStatement != nullptr)
+	{
+		return pFunctionCallStatement;
+	}
+
+	RESTORE_CHECKPOINT();
 	return nullptr;
 }
 
@@ -179,6 +187,74 @@ Ref<Expression> AST::parseAssignmentStatement()
 	}
 
 	return CreateRef<AssignmentExpression>(std::string(pIdentifier->value.stringValue), pExp);
+}
+
+Ref<Expression> AST::parseFunctionCallStatement()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pIdentifier = parseToken(TOKEN_TYPE_IDENTIFIER);
+
+	if (pIdentifier == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pOpenParen = parseToken(TOKEN_TYPE_OPEN_PARENTHESIS);
+	if (pOpenParen == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	std::vector<Ref<Expression>> arguments;
+	parseExpList(arguments);
+
+	Token* pCloseParen = parseToken(TOKEN_TYPE_CLOSE_PARENTHESIS);
+	if (pCloseParen == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pSemicolon = parseToken(TOKEN_TYPE_SEMICOLON);
+	if (pSemicolon == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	return CreateRef<FunctionCallExpression>(std::string(pIdentifier->value.stringValue), arguments);
+}
+
+bool AST::parseExpList(std::vector<Ref<Expression>>& arguments)
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Ref<Expression> pExp = parseExp();
+
+	if (pExp == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return false;
+	}
+
+	arguments.push_back(pExp);
+
+	SAVE_CHECKPOINT();
+
+	Token* pComma = parseToken(TOKEN_TYPE_COMMA);
+
+	if (pComma == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return true;
+	}
+
+	return parseExpList(arguments);
 }
 
 Ref<Expression> AST::parseCompareExp()
@@ -446,6 +522,15 @@ Ref<Expression> AST::parsePrimaryExp()
 	if (pExpBlock != nullptr)
 	{
 		return pExpBlock;
+	}
+
+	RESTORE_CHECKPOINT();
+
+	Token* pIdentifier = parseToken(TOKEN_TYPE_IDENTIFIER);
+
+	if (pIdentifier != nullptr)
+	{
+		return CreateRef<IdentifierExpression>(std::string(pIdentifier->value.stringValue));
 	}
 
 	RESTORE_CHECKPOINT();

@@ -26,11 +26,19 @@ RemainingStatements: Statement RemainingStatements
 
 Statement: VariableDeclaration
 		 | AssignmentStatement
+		 | FunctionCallStatement
 		 ;
 
 VariableDeclaration: let Identifier;
 
 AssignmentStatement: Identifier = Exp;
+
+FunctionCallStatement: Identifier ( ExpList );
+
+ExpList: Exp , ExpList
+	   | Exp
+	   | ε
+	   ;
 
 Exp: CompareExp;
 
@@ -63,10 +71,13 @@ LeftMulExp: PrimaryExp;
 
 PrimaryExp: ( AddExp )
 		  | Literal
+		  | Identifier
 		  ;
 
 Literal: Integer
 	   | Float
+	   | String
+	   | Boolean
 	   ;
 
  */
@@ -93,6 +104,8 @@ private:
 	Ref<Expression> parseStatement();
 	Ref<Expression> parseVariableDeclaration();
 	Ref<Expression> parseAssignmentStatement();
+	Ref<Expression> parseFunctionCallStatement();
+	bool			parseExpList(std::vector<Ref<Expression>>& arguments);
 	Ref<Expression> parsePrimaryExp();
 	Ref<Expression> parseLiteral();
 	Ref<Expression> parseExpBlock();
