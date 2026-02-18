@@ -16,6 +16,22 @@ typedef bool (*TokenParser)(const std::string& sourceCode, std::vector<Token>& t
 
 Grammar:
 
+StatementList: Statement RemainingStatements
+			 | ε
+			 ;
+
+RemainingStatements: Statement RemainingStatements
+				 | ε
+				 ;
+
+Statement: VariableDeclaration
+		 | AssignmentStatement
+		 ;
+
+VariableDeclaration: let Identifier;
+
+AssignmentStatement: Identifier = Exp;
+
 Exp: CompareExp;
 
 CompareExp: CompareExpLeft CompareExpRight;
@@ -72,6 +88,11 @@ public:
 	}
 
 private:
+	Ref<Expression> parseStatementList();
+	bool			parseRemainingStatements(Ref<StatementListExpression>& statements);
+	Ref<Expression> parseStatement();
+	Ref<Expression> parseVariableDeclaration();
+	Ref<Expression> parseAssignmentStatement();
 	Ref<Expression> parsePrimaryExp();
 	Ref<Expression> parseLiteral();
 	Ref<Expression> parseExpBlock();

@@ -57,7 +57,9 @@ int main(void)
 	// TEST_EXPR("3 + 4 * 5");
 	// TEST_EXPR("(3 + 4) * 5");
 	// TEST_EXPR("3 - (4 - 5)");
-	TEST_EXPR("3 + 5 > (4 - 5)");
+	// TEST_EXPR("3 + 5 > (4 - 5)");
+	// TEST_EXPR("let x;");
+	TEST_EXPR("let x; x = 5 + 3 * 2;");
 
 #endif
 

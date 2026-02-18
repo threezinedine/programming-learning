@@ -23,17 +23,162 @@ AST::AST(const std::string& sourceCode, TokenParser tokenParser)
 
 	m_tokenCursor	  = 0;
 	i32 nodeIndex	  = 0;
-	m_pRootExpression = parseExp();
-	m_isValid		  = (m_pRootExpression != nullptr);
+	m_pRootExpression = parseStatementList();
+	m_isValid		  = (m_pRootExpression != nullptr && m_tokenCursor == static_cast<i32>(m_tokens.size()));
 }
 
 AST::~AST()
 {
 }
 
+Ref<Expression> AST::parseStatementList()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Ref<StatementListExpression> pStatementList = CreateRef<StatementListExpression>();
+
+	Ref<Expression> pStatement = parseStatement();
+
+	if (pStatement == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return pStatementList;
+	}
+
+	pStatementList->addStatement(pStatement);
+
+	SAVE_CHECKPOINT();
+
+	if (!parseRemainingStatements(pStatementList))
+	{
+		RESTORE_CHECKPOINT();
+	}
+
+	return pStatementList;
+}
+
+bool AST::parseRemainingStatements(Ref<StatementListExpression>& statements)
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Ref<Expression> pStatement = parseStatement();
+
+	if (pStatement == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return false;
+	}
+
+	SAVE_CHECKPOINT();
+
+	statements->addStatement(pStatement);
+
+	if (!parseRemainingStatements(statements))
+	{
+		RESTORE_CHECKPOINT();
+	}
+
+	return true;
+}
+
 Ref<Expression> AST::parseExp()
 {
 	return parseCompareExp();
+}
+
+Ref<Expression> AST::parseStatement()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Ref<Expression> pVariableDeclaration = parseVariableDeclaration();
+
+	if (pVariableDeclaration != nullptr)
+	{
+		return pVariableDeclaration;
+	}
+	RESTORE_CHECKPOINT();
+
+	Ref<Expression> pAssignmentStatement = parseAssignmentStatement();
+	if (pAssignmentStatement != nullptr)
+	{
+		return pAssignmentStatement;
+	}
+
+	RESTORE_CHECKPOINT();
+	return nullptr;
+}
+
+Ref<Expression> AST::parseVariableDeclaration()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pLet = parseToken(TOKEN_TYPE_KEYWORD_LET);
+
+	if (pLet == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pIdentifier = parseToken(TOKEN_TYPE_IDENTIFIER);
+
+	if (pIdentifier == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pSemicolon = parseToken(TOKEN_TYPE_SEMICOLON);
+	if (pSemicolon == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	return CreateRef<VariableDeclarationExpression>(std::string(pIdentifier->value.stringValue));
+}
+
+Ref<Expression> AST::parseAssignmentStatement()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pIdentifier = parseToken(TOKEN_TYPE_IDENTIFIER);
+
+	if (pIdentifier == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pEqual = parseToken(TOKEN_TYPE_ASSIGN);
+	if (pEqual == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Ref<Expression> pExp = parseExp();
+
+	if (pExp == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pSemicolon = parseToken(TOKEN_TYPE_SEMICOLON);
+
+	if (pSemicolon == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	return CreateRef<AssignmentExpression>(std::string(pIdentifier->value.stringValue), pExp);
 }
 
 Ref<Expression> AST::parseCompareExp()
