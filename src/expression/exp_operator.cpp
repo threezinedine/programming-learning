@@ -31,6 +31,24 @@ nlohmann::json OperatorExpression::toJson() const
 	case EXPRESSION_TYPE_DIVIDE:
 		jsonObj["type"] = "Divide";
 		break;
+	case EXPRESSION_TYPE_COMPARE_LESS:
+		jsonObj["type"] = "CompareLess";
+		break;
+	case EXPRESSION_TYPE_COMPARE_GREATER:
+		jsonObj["type"] = "CompareGreater";
+		break;
+	case EXPRESSION_TYPE_COMPARE_EQUAL:
+		jsonObj["type"] = "CompareEqual";
+		break;
+	case EXPRESSION_TYPE_COMPARE_NOT_EQUAL:
+		jsonObj["type"] = "CompareNotEqual";
+		break;
+	case EXPRESSION_TYPE_COMPARE_LESS_EQUAL:
+		jsonObj["type"] = "CompareLessEqual";
+		break;
+	case EXPRESSION_TYPE_COMPARE_GREATER_EQUAL:
+		jsonObj["type"] = "CompareGreaterEqual";
+		break;
 	default:
 		jsonObj["type"] = "Unknown";
 		break;

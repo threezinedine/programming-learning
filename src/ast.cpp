@@ -33,10 +33,39 @@ AST::~AST()
 
 Ref<Expression> AST::parseExp()
 {
-	return parseAddExp();
+	return parseCompareExp();
 }
 
-Ref<Expression> AST::parseAddExp()
+Ref<Expression> AST::parseCompareExp()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Ref<Expression> pCompareExpLeft = parseCompareExpLeft();
+
+	if (pCompareExpLeft == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	SAVE_CHECKPOINT();
+
+	Ref<OperatorExpression> pCompareExp = CreateRef<OperatorExpression>(EXPRESSION_TYPE_COMPARE_EQUAL);
+	pCompareExp->setLeft(pCompareExpLeft);
+
+	if (parseCompareExpRight(pCompareExp))
+	{
+		return pCompareExp;
+	}
+	else
+	{
+		RESTORE_CHECKPOINT();
+		return pCompareExpLeft;
+	}
+}
+
+Ref<Expression> AST::parseCompareExpLeft()
 {
 	SETUP();
 	SAVE_CHECKPOINT();
@@ -64,9 +93,61 @@ Ref<Expression> AST::parseAddExp()
 		RESTORE_CHECKPOINT();
 		return pLeftAddExp;
 	}
+}
 
-	RESTORE_CHECKPOINT();
-	return pLeftAddExp;
+bool AST::parseCompareExpRight(Ref<OperatorExpression>& pExp)
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pNext = getNextToken();
+
+	if (pNext == nullptr)
+	{
+		return false;
+	}
+
+	switch (pNext->type)
+	{
+	case TOKEN_TYPE_OPERATOR_LESS:
+		pExp->setType(EXPRESSION_TYPE_COMPARE_LESS);
+		m_tokenCursor++;
+		break;
+	case TOKEN_TYPE_OPERATOR_GREATER:
+		pExp->setType(EXPRESSION_TYPE_COMPARE_GREATER);
+		m_tokenCursor++;
+		break;
+	case TOKEN_TYPE_OPERATOR_EQUAL:
+		pExp->setType(EXPRESSION_TYPE_COMPARE_EQUAL);
+		m_tokenCursor++;
+		break;
+	case TOKEN_TYPE_OPERATOR_NOT_EQUAL:
+		pExp->setType(EXPRESSION_TYPE_COMPARE_NOT_EQUAL);
+		m_tokenCursor++;
+		break;
+	case TOKEN_TYPE_OPERATOR_LESS_EQUAL:
+		pExp->setType(EXPRESSION_TYPE_COMPARE_LESS_EQUAL);
+		m_tokenCursor++;
+		break;
+	case TOKEN_TYPE_OPERATOR_GREATER_EQUAL:
+		pExp->setType(EXPRESSION_TYPE_COMPARE_GREATER_EQUAL);
+		m_tokenCursor++;
+		break;
+	default:
+		RESTORE_CHECKPOINT();
+		return false;
+	}
+
+	Ref<Expression> pCompareExpLeft = parseCompareExpLeft();
+
+	if (pCompareExpLeft == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return false;
+	}
+
+	pExp->setRight(pCompareExpLeft);
+	return true;
 }
 
 Ref<Expression> AST::parseLeftAddExp()
@@ -298,6 +379,26 @@ Token* AST::parseToken(TokenType expectedType)
 Ref<Expression> AST::parseEpsilon()
 {
 	return CreateRef<EpsilonExpression>();
+}
+
+Token* AST::getNextTokenWithType(TokenType expectedType)
+{
+	if (m_tokenCursor >= static_cast<i32>(m_tokens.size()))
+	{
+		return nullptr;
+	}
+
+	return m_tokens[m_tokenCursor].type == expectedType ? &m_tokens[m_tokenCursor] : nullptr;
+}
+
+Token* AST::getNextToken()
+{
+	if (m_tokenCursor >= static_cast<i32>(m_tokens.size()))
+	{
+		return nullptr;
+	}
+
+	return &m_tokens[m_tokenCursor];
 }
 
 } // namespace ntt

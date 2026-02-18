@@ -16,9 +16,20 @@ typedef bool (*TokenParser)(const std::string& sourceCode, std::vector<Token>& t
 
 Grammar:
 
-Exp: AddExp;
+Exp: CompareExp;
 
-AddExp: LeftAddExp RightAddExp;
+CompareExp: CompareExpLeft CompareExpRight;
+
+CompareExpRight: < CompareExpLeft
+			   | > CompareExpLeft
+			   | == CompareExpLeft
+			   | != CompareExpLeft
+			   | <= CompareExpLeft
+			   | >= CompareExpLeft
+			   | ε
+			   ;
+
+CompareExpLeft: LeftAddExp RightAddExp;
 
 RightAddExp: + LeftAddExp RightAddExp
 		   | - LeftAddExp RightAddExp
@@ -69,12 +80,18 @@ private:
 
 private:
 	Ref<Expression> parseExp();
-	Ref<Expression> parseAddExp();
+	Ref<Expression> parseCompareExp();
+	Ref<Expression> parseCompareExpLeft();
+	bool			parseCompareExpRight(Ref<OperatorExpression>& pExp);
 	Ref<Expression> parseLeftAddExp();
 	bool			parseRightAddExp(Ref<OperatorExpression>& pAddExp);
 
 	Ref<Expression> parseLeftMulExp();
 	bool			parseRightMulExp(Ref<OperatorExpression>& pMulExp);
+
+private:
+	Token* getNextTokenWithType(TokenType expectedType);
+	Token* getNextToken();
 
 private:
 	std::vector<Token> m_tokens;

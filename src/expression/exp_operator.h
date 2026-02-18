@@ -42,6 +42,11 @@ public:
 		type = EXPRESSION_TYPE_DIVIDE;
 	}
 
+	inline void setType(ExpressionType newType)
+	{
+		type = newType;
+	}
+
 private:
 	Ref<Expression> m_left;
 	Ref<Expression> m_right;

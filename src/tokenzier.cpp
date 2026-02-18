@@ -5,16 +5,22 @@ namespace ntt {
 
 // clang-format off
 TokenPattern patterns[] = {
-	{TOKEN_TYPE_FLOAT            , std::regex("^\\d+\\.\\d+")       },
-	{TOKEN_TYPE_INTEGER          , std::regex("^\\d+")	            },
-	{TOKEN_TYPE_BOOLEAN          , std::regex("^(true|false)")   	},
-	{TOKEN_TYPE_STRING           , std::regex("^\"(\\\\.|[^\"])*\"")},
-	{TOKEN_TYPE_OPERATOR_ADD     , std::regex("^\\+")               },
-	{TOKEN_TYPE_OPERATOR_SUB     , std::regex("^\\-")               },
-	{TOKEN_TYPE_OPERATOR_MUL     , std::regex("^\\*")               },
-	{TOKEN_TYPE_OPERATOR_DIV     , std::regex("^/")                 },
-	{TOKEN_TYPE_OPEN_PARENTHESIS , std::regex("^\\(") 			    },
-	{TOKEN_TYPE_CLOSE_PARENTHESIS, std::regex("^\\)") 			    },
+	{TOKEN_TYPE_FLOAT                 , std::regex("^\\d+\\.\\d+")       },
+	{TOKEN_TYPE_INTEGER               , std::regex("^\\d+")	             },
+	{TOKEN_TYPE_BOOLEAN               , std::regex("^(true|false)")   	 },
+	{TOKEN_TYPE_STRING                , std::regex("^\"(\\\\.|[^\"])*\"")},
+	{TOKEN_TYPE_OPERATOR_ADD          , std::regex("^\\+")               },
+	{TOKEN_TYPE_OPERATOR_SUB          , std::regex("^\\-")               },
+	{TOKEN_TYPE_OPERATOR_MUL          , std::regex("^\\*")               },
+	{TOKEN_TYPE_OPERATOR_DIV          , std::regex("^/")                 },
+	{TOKEN_TYPE_OPERATOR_LESS         , std::regex("^<")                 },
+	{TOKEN_TYPE_OPERATOR_GREATER      , std::regex("^>")                 },
+	{TOKEN_TYPE_OPERATOR_EQUAL        , std::regex("^==")                },
+	{TOKEN_TYPE_OPERATOR_NOT_EQUAL    , std::regex("^!=")                },
+	{TOKEN_TYPE_OPERATOR_LESS_EQUAL   , std::regex("^<=")                },
+	{TOKEN_TYPE_OPERATOR_GREATER_EQUAL, std::regex("^>=")                },
+	{TOKEN_TYPE_OPEN_PARENTHESIS      , std::regex("^\\(") 			     },
+	{TOKEN_TYPE_CLOSE_PARENTHESIS     , std::regex("^\\)") 			     },
 };
 // clang-format on
 
