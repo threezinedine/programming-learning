@@ -5,11 +5,11 @@
 
 namespace ntt {
 
-class StatementListExpression : public Expression
+class BlockExpression : public Expression
 {
 public:
-	StatementListExpression();
-	~StatementListExpression();
+	BlockExpression(std::vector<Ref<Expression>>& statements);
+	~BlockExpression();
 
 	nlohmann::json toJson() const override;
 

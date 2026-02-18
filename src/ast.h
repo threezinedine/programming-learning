@@ -16,13 +16,27 @@ typedef bool (*TokenParser)(const std::string& sourceCode, std::vector<Token>& t
 
 Grammar:
 
-StatementList: Statement RemainingStatements
+Program: Segment Program';
+
+Program': Segment Program'
+		| ε
+		;
+
+Segment: StatementList
+	   | Function
+	   ;
+
+Function: func Identifier ( ParameterList ) { StatementList }
+
+ParameterList: Identifier , ParameterList
+			 | Identifier
 			 | ε
 			 ;
 
-RemainingStatements: Statement RemainingStatements
-				 | ε
-				 ;
+StatementList: Statement StatementList
+			 | Statement
+			 | ε
+			 ;
 
 Statement: VariableDeclaration
 		 | AssignmentStatement
@@ -99,8 +113,12 @@ public:
 	}
 
 private:
-	Ref<Expression> parseStatementList();
-	bool			parseRemainingStatements(Ref<StatementListExpression>& statements);
+	Ref<Expression> parseProgram();
+	bool			parseProgramPrime(Ref<ProgramExpression>& pProgram);
+	bool			parseSegment(Ref<ProgramExpression>& pProgram);
+	bool			parseParameterList(std::vector<Ref<IdentifierExpression>>& parameters);
+	bool			parseStatementList(std::vector<Ref<Expression>>& statements);
+	Ref<Expression> parseFunction();
 	Ref<Expression> parseStatement();
 	Ref<Expression> parseVariableDeclaration();
 	Ref<Expression> parseAssignmentStatement();

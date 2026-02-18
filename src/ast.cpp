@@ -23,7 +23,7 @@ AST::AST(const std::string& sourceCode, TokenParser tokenParser)
 
 	m_tokenCursor	  = 0;
 	i32 nodeIndex	  = 0;
-	m_pRootExpression = parseStatementList();
+	m_pRootExpression = parseProgram();
 	m_isValid		  = (m_pRootExpression != nullptr && m_tokenCursor == static_cast<i32>(m_tokens.size()));
 }
 
@@ -31,34 +31,82 @@ AST::~AST()
 {
 }
 
-Ref<Expression> AST::parseStatementList()
+Ref<Expression> AST::parseProgram()
 {
 	SETUP();
 	SAVE_CHECKPOINT();
 
-	Ref<StatementListExpression> pStatementList = CreateRef<StatementListExpression>();
+	Ref<ProgramExpression> pProgram = CreateRef<ProgramExpression>();
 
-	Ref<Expression> pStatement = parseStatement();
-
-	if (pStatement == nullptr)
+	if (!parseSegment(pProgram))
 	{
 		RESTORE_CHECKPOINT();
-		return pStatementList;
+		return pProgram;
 	}
-
-	pStatementList->addStatement(pStatement);
 
 	SAVE_CHECKPOINT();
 
-	if (!parseRemainingStatements(pStatementList))
+	if (!parseProgramPrime(pProgram))
 	{
 		RESTORE_CHECKPOINT();
 	}
 
-	return pStatementList;
+	return pProgram;
 }
 
-bool AST::parseRemainingStatements(Ref<StatementListExpression>& statements)
+bool AST::parseProgramPrime(Ref<ProgramExpression>& pProgram)
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	if (!parseSegment(pProgram))
+	{
+		RESTORE_CHECKPOINT();
+		return true;
+	}
+
+	SAVE_CHECKPOINT();
+
+	if (!parseProgramPrime(pProgram))
+	{
+		RESTORE_CHECKPOINT();
+	}
+
+	return true;
+}
+
+bool AST::parseSegment(Ref<ProgramExpression>& pProgram)
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	std::vector<Ref<Expression>> statements;
+
+	if (parseStatementList(statements))
+	{
+		pProgram->updateSegment(statements);
+		return true;
+	}
+
+	RESTORE_CHECKPOINT();
+
+	Ref<Expression> pFunction = parseFunction();
+	if (pFunction != nullptr)
+	{
+		pProgram->addSegment(pFunction);
+		return true;
+	}
+
+	RESTORE_CHECKPOINT();
+	return false;
+}
+
+Ref<Expression> AST::parseFunction()
+{
+	return nullptr;
+}
+
+bool AST::parseStatementList(std::vector<Ref<Expression>>& statements)
 {
 	SETUP();
 	SAVE_CHECKPOINT();
@@ -71,11 +119,11 @@ bool AST::parseRemainingStatements(Ref<StatementListExpression>& statements)
 		return false;
 	}
 
+	statements.push_back(pStatement);
+
 	SAVE_CHECKPOINT();
 
-	statements->addStatement(pStatement);
-
-	if (!parseRemainingStatements(statements))
+	if (!parseStatementList(statements))
 	{
 		RESTORE_CHECKPOINT();
 	}
