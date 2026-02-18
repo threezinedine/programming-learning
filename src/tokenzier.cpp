@@ -6,6 +6,8 @@ namespace ntt {
 // clang-format off
 TokenPattern patterns[] = {
 	{TOKEN_TYPE_KEYWORD_LET           , std::regex("^let")                   },
+	{TOKEN_TYPE_KEYWORD_RETURN        , std::regex("^return")                },
+	{TOKEN_TYPE_KEYWORD_FUNC          , std::regex("^func")                  },
 	{TOKEN_TYPE_FLOAT                 , std::regex("^\\d+\\.\\d+")           },
 	{TOKEN_TYPE_INTEGER               , std::regex("^\\d+")	                 },
 	{TOKEN_TYPE_BOOLEAN               , std::regex("^(true|false)")   	     },

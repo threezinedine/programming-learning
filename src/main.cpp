@@ -65,6 +65,17 @@ x = 5 + 3 * 2;
 let a; 
 a = x - 4;
 print("Result: ", a);
+
+func test()
+{
+	print("This is a test function.");
+}
+
+func add(a, b)
+{
+	return a + b;
+}
+
 )");
 
 #endif

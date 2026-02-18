@@ -39,11 +39,14 @@ StatementList: Statement StatementList
 			 ;
 
 Statement: VariableDeclaration
+		 | ReturnStatement
 		 | AssignmentStatement
 		 | FunctionCallStatement
 		 ;
 
 VariableDeclaration: let Identifier;
+
+ReturnStatement: return Exp;
 
 AssignmentStatement: Identifier = Exp;
 
@@ -123,6 +126,7 @@ private:
 	Ref<Expression> parseVariableDeclaration();
 	Ref<Expression> parseAssignmentStatement();
 	Ref<Expression> parseFunctionCallStatement();
+	Ref<Expression> parseReturnStatement();
 	bool			parseExpList(std::vector<Ref<Expression>>& arguments);
 	Ref<Expression> parsePrimaryExp();
 	Ref<Expression> parseLiteral();

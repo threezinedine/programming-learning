@@ -2,13 +2,13 @@
 
 namespace ntt {
 
-FunctionExpression::FunctionExpression(const std::string&			   functionName,
-									   const std::vector<std::string>& parameters,
-									   Ref<Expression>				   body)
+FunctionExpression::FunctionExpression(const std::string&							 functionName,
+									   const std::vector<Ref<IdentifierExpression>>& parameters,
+									   std::vector<Ref<Expression>>					 statements)
 	: Expression(EXPRESSION_TYPE_FUNCTION) // You can set this to a specific type if needed
 	, m_functionName(functionName)
 	, m_parameters(parameters)
-	, m_body(body)
+	, m_statements(statements)
 {
 }
 
@@ -24,9 +24,13 @@ nlohmann::json FunctionExpression::toJson() const
 	jsonObj["parameters"]	= nlohmann::json::array();
 	for (const auto& param : m_parameters)
 	{
-		jsonObj["parameters"].push_back(param);
+		jsonObj["parameters"].push_back(param->toJson());
 	}
-	jsonObj["body"] = m_body->toJson();
+	jsonObj["body"] = nlohmann::json::array();
+	for (const auto& statement : m_statements)
+	{
+		jsonObj["body"].push_back(statement->toJson());
+	}
 	return jsonObj;
 }
 

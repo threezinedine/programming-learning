@@ -101,9 +101,103 @@ bool AST::parseSegment(Ref<ProgramExpression>& pProgram)
 	return false;
 }
 
+bool AST::parseParameterList(std::vector<Ref<IdentifierExpression>>& parameters)
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pIdentifier = parseToken(TOKEN_TYPE_IDENTIFIER);
+
+	if (pIdentifier == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return true;
+	}
+
+	parameters.push_back(CreateRef<IdentifierExpression>(std::string(pIdentifier->value.stringValue)));
+
+	SAVE_CHECKPOINT();
+
+	Token* pComma = parseToken(TOKEN_TYPE_COMMA);
+
+	if (pComma == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return true;
+	}
+
+	if (!parseParameterList(parameters))
+	{
+		RESTORE_CHECKPOINT();
+	}
+
+	return true;
+}
+
 Ref<Expression> AST::parseFunction()
 {
-	return nullptr;
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pFunc = parseToken(TOKEN_TYPE_KEYWORD_FUNC);
+
+	if (pFunc == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pIdentifier = parseToken(TOKEN_TYPE_IDENTIFIER);
+
+	if (pIdentifier == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pOpenParen = parseToken(TOKEN_TYPE_OPEN_PARENTHESIS);
+
+	if (pOpenParen == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	std::vector<Ref<IdentifierExpression>> parameters;
+	if (!parseParameterList(parameters))
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pCloseParen = parseToken(TOKEN_TYPE_CLOSE_PARENTHESIS);
+
+	if (pCloseParen == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pOpenBrace = parseToken(TOKEN_TYPE_OPEN_BRACE);
+
+	if (pOpenBrace == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	std::vector<Ref<Expression>> statements;
+	parseStatementList(statements);
+
+	Token* pCloseBrace = parseToken(TOKEN_TYPE_CLOSE_BRACE);
+
+	if (pCloseBrace == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	return CreateRef<FunctionExpression>(std::string(pIdentifier->value.stringValue), parameters, statements);
 }
 
 bool AST::parseStatementList(std::vector<Ref<Expression>>& statements)
@@ -164,6 +258,16 @@ Ref<Expression> AST::parseStatement()
 	}
 
 	RESTORE_CHECKPOINT();
+
+	Ref<Expression> pReturnStatement = parseReturnStatement();
+
+	if (pReturnStatement != nullptr)
+	{
+		return pReturnStatement;
+	}
+
+	RESTORE_CHECKPOINT();
+
 	return nullptr;
 }
 
@@ -275,6 +379,38 @@ Ref<Expression> AST::parseFunctionCallStatement()
 	}
 
 	return CreateRef<FunctionCallExpression>(std::string(pIdentifier->value.stringValue), arguments);
+}
+
+Ref<Expression> AST::parseReturnStatement()
+{
+	SETUP();
+	SAVE_CHECKPOINT();
+
+	Token* pReturn = parseToken(TOKEN_TYPE_KEYWORD_RETURN);
+
+	if (pReturn == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Ref<Expression> pExp = parseExp();
+
+	if (pExp == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	Token* pSemicolon = parseToken(TOKEN_TYPE_SEMICOLON);
+
+	if (pSemicolon == nullptr)
+	{
+		RESTORE_CHECKPOINT();
+		return nullptr;
+	}
+
+	return CreateRef<ReturnExpression>(pExp);
 }
 
 bool AST::parseExpList(std::vector<Ref<Expression>>& arguments)
